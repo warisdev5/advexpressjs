@@ -135,6 +135,19 @@ req.session.destroy(function(err){
 - cookie reading `req.cookies.age` read with name by age
 - clear cookie `res.clearCookie("age");` give cookie name want to clear
 
+## flash messages
+- install a package `connect-flash`
+```
+npm install connect-flash
+```
+- make sure you put connect flash in a app.use function in app.js file or index.js file if app.js file not exist!
+- you can create flash message in any route and another route to use flash message
+- you cannot use connect flash without using of express-session package
+- add this code `var flash = require("connect-flash")` in app.js file or index.js
+- add this code `app.use(flash());` after app.use session code
+- flash message define in one route then use it to any other route
+- just like `req.flash("name", "flash message data")`
+
 
 # Learn Mongo DB
 
@@ -148,25 +161,98 @@ req.session.destroy(function(err){
 -   require and setup connection
 -   make schema
 -   create model and export
--   
 
 
-# git setup
-## create a new repository on the command line
 
+# login auth
+## Install these packages
 ```
-echo "# advexpressjs" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/warisdev5/advexpressjs.git
-git push -u origin main
+npm install passport passport-local passport-local-mongoose mongoose express-session
 ```
 
-## or push an existing repository from the command line
+- write app.js code first in app.js file and write it after view engile and before logger
+- setup users.js then properly
+- inside.js try register first and other codes as well
+
+
+# Code for index.js File
+## Code for Logout
 ```
-git remote add origin https://github.com/warisdev5/advexpressjs.git
-git branch -M main
-git push -u origin main
+app.get('/logout', function(req, res, next) {
+    req.logout(function(err) {
+        if (err) { return next(err); }
+        res.redirect('/');
+    })
+});
+```
+
+## Code for IsLoggedIn Middleware
+```
+function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
+}
+```
+
+## Code for app.js File
+```
+app.use(expressSession({
+    resave: false,
+    saveUninitialized: false,
+    secret: "heyheybaybay"
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+passport.serializeUser(usersRouter.serializeUser());
+passport.deserializeUser(usersRouter.deserializeUser());
+```
+
+## Code for users.js file
+```
+const mongoose = require("mongoose");
+const plm = require("passport-local-mongoose");
+
+mongoose.connect("mongodb://127.0.0.1:27017/tesingendgame2");
+
+const userSchema = mongoose.Schema({
+  username: String,
+  password: String,
+  secret: String
+})
+
+userSchema.plugin(plm);
+
+module.exports = mongoose.model("user", userSchema);
+```
+
+## Code for index.js File for Registering User
+```
+// add these two lines at top
+const localStrategy = require("passport-local");
+passport.use(new localStrategy(userModel.authenticate()));
+
+// register route
+router.post('/register', function(req, res) {
+    let userdata = new userModel({
+        username.req.body.username,
+        secret: req.body.secret
+    });
+
+    userModel.register(userdata, req.body.password)
+        .then(function(registereduser) {
+            passport.authenticate("local")( req, res, function () {
+                res.redirect('/profile');
+            })
+        })
+})
+```
+
+## Code for log in
+```
+router.post("/login", passport.authenticate("local", {
+    successRedirect: "/profile",
+    failureRedirect: "/"
+}), function (req, res) { })
 ```

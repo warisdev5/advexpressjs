@@ -8,14 +8,40 @@
 
 // module.exports = router;
 
-const mongoose = require("mongoose");
+// const mongoose = require("mongoose");
+// mongoose.connect("mongodb://127.0.0.1:27017/learnjsdb");
 
-mongoose.connect("mongodb://127.0.0.1:27017/learnjsdb");
-
-const usersschema = mongoose.Schema({
+/* const userSchema = mongoose.Schema({
   username: String,
   name: String,
   age: Number
+}) */
+
+/* const userSchema = mongoose.Schema({
+  username: String,
+  nickname: String,
+  description: String,
+  categories: {
+    type: Array,
+    default: []
+  },
+  datecreated: {
+    type: Date,
+    default: Date.now()
+  }
+}); */
+
+const mongoose = require("mongoose");
+const plm = require("passport-local-mongoose");
+
+mongoose.connect("mongodb://127.0.0.1:27017/tesinglogin");
+
+const userSchema = mongoose.Schema({
+  username: String,
+  password: String,
+  secret: String
 })
 
-module.exports = mongoose.model("user", usersschema);
+userSchema.plugin(plm);
+
+module.exports = mongoose.model("user", userSchema);
